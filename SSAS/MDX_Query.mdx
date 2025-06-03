@@ -1,0 +1,81 @@
+﻿-- 1. Tổng doanh thu theo từng năm
+SELECT 
+  [Dim Date].[Year].Members ON ROWS,
+  [Measures].[Total Order Value] ON COLUMNS
+FROM [Sales]
+
+--2. Top 5 nhóm sản phẩm có doanh thu cao nhất
+SELECT 
+  TOPCOUNT(
+    [Dim Products].[Product Category Name].Members,
+    10,
+    [Measures].[Total Order Value]
+  ) ON ROWS,
+  [Measures].[Total Order Value] ON COLUMNS
+FROM [Sales]
+
+
+-- 3. Doanh thu theo từng quý của năm 2017
+SELECT 
+  [Dim Date].[Quarter].Members ON ROWS,
+  [Measures].[Total Order Value] ON COLUMNS
+FROM [Sales]
+WHERE ([Dim Date].[Year].[2017])
+
+-- 4. Top 10 sản phẩm có điểm đánh giá trung bình thấp nhất
+WITH 
+MEMBER [Measures].[Avg Review Score Rounded] AS
+    Round([Measures].[Avg Review Score Accurate], 2)
+
+SELECT 
+  BOTTOMCOUNT(
+    [Dim Products].[Product Category Name].Members,
+    10,
+    [Measures].[Avg Review Score Accurate]
+  ) ON ROWS,
+  [Measures].[Avg Review Score Rounded] ON COLUMNS
+FROM [Sales]
+
+--  top 10 thành phố có số lượng đơn hàng nhiều nhất cho tôi
+SELECT
+  TOPCOUNT(
+    [Dim Customers].[Customer City].Members,
+    10,
+    [Measures].[Fact Orders Count]
+  ) ON ROWS,
+  [Measures].[Fact Orders Count] ON COLUMNS
+FROM [Sales]
+
+
+--  Số lượng đơn hàng theo tháng và quý trong năm 2018
+SELECT
+  NONEMPTY(
+    [Order Date].[Quarter].[Quarter].Members * [Order Date].[Month].[Month].Members,
+    [Measures].[Fact Orders Count]
+  ) ON ROWS,
+  [Measures].[Fact Orders Count] ON COLUMNS
+FROM [Sales]
+WHERE ([Order Date].[Year].[2018])
+
+
+-- So sánh lượng đơn hàng giữa các năm 2016, 2017, 2018
+SELECT
+  {[Order Date].[Year].[2016], [Order Date].[Year].[2017], [Order Date].[Year].[2018]} ON ROWS,
+  [Measures].[Fact Orders Count] ON COLUMNS
+FROM [Sales]
+
+-- Số lượng đánh giá tiêu cực theo danh mục sản phẩm (top 10)
+SELECT
+  TOPCOUNT(
+    [Dim Products].[Product Category Name].Members,
+    10,
+    [Measures].[Is Negative Review]
+  ) ON ROWS,
+  [Measures].[Is Negative Review] ON COLUMNS
+FROM [Sales]
+
+
+--Tỷ lệ đánh giá có bình luận (Has Comment) và không bình luận (Is Negative Review)
+ SELECT
+  {[Measures].[Has Comment], [Measures].[Is Negative Review]} ON COLUMNS
+FROM [Sales]
